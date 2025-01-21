@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
@@ -5,8 +6,13 @@ const fetch = require('node-fetch');
 const app = express();
 const port = process.env.PORT || 3001;
 
-// Unsplash API key
-const UNSPLASH_ACCESS_KEY = 'kV0sZtPa3hjYmFQJ4IjBozR2ykBAAA-u8aKqY8PEh6Q';
+// Get API key from environment variable
+const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY;
+
+if (!UNSPLASH_ACCESS_KEY) {
+  console.error('Error: UNSPLASH_ACCESS_KEY is not set in environment variables');
+  process.exit(1);
+}
 
 app.use(cors());
 app.use(express.json());

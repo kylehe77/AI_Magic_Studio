@@ -31,7 +31,18 @@ AI_web/
 
 ## Setup and Running
 
-1. Install dependencies:
+1. Set up environment variables:
+   ```bash
+   # In backend directory
+   cp .env.example .env
+   # Edit .env and add your Unsplash API key
+   
+   # In frontend directory
+   cp .env.example .env
+   # Edit .env and add your Remove.bg API key
+   ```
+
+2. Install dependencies:
    ```bash
    # Install backend dependencies
    cd backend
@@ -42,7 +53,7 @@ AI_web/
    npm install
    ```
 
-2. Start the servers:
+3. Start the servers:
    ```bash
    # Start backend server (from backend directory)
    npm start
@@ -51,7 +62,7 @@ AI_web/
    npm start
    ```
 
-3. Access the application:
+4. Access the application:
    - Frontend: http://localhost:3000
    - Backend: http://localhost:3001
 
@@ -62,6 +73,14 @@ AI_web/
 
 ## Environment Variables
 
-Make sure to set up the following environment variables:
+Backend (.env):
 - `UNSPLASH_ACCESS_KEY`: Your Unsplash API access key
-- `REMOVE_BG_API_KEY`: Your remove.bg API key
+
+Frontend (.env):
+- `REACT_APP_REMOVE_BG_API_KEY`: Your remove.bg API key
+
+## Security Notes
+
+- Never commit .env files to version control
+- Keep your API keys private
+- Use environment variables for all sensitive information
