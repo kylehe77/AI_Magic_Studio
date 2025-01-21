@@ -1,0 +1,18 @@
+{
+  "name": "ai-background-remover-backend",
+  "version": "1.0.0",
+  "description": "Backend server for AI Background Remover",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}
