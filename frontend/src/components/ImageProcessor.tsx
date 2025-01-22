@@ -1,252 +1,272 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
-import BackgroundPicker from './BackgroundPicker';
+import html2canvas from 'html2canvas';
 import './ImageProcessor.css';
 
+interface Position {
+  x: number;
+  y: number;
+}
+
+enum ProcessingStage {
+  Initial,
+  Uploaded,
+  BackgroundRemoved,
+  Processing
+}
+
 const ImageProcessor: React.FC = () => {
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [processedImage, setProcessedImage] = useState<string | null>(null);
+  const [selectedBackgroundImage, setSelectedBackgroundImage] = useState<string | null>(null);
+  const [processingStage, setProcessingStage] = useState<ProcessingStage>(ProcessingStage.Initial);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showBackgroundPicker, setShowBackgroundPicker] = useState(false);
-  const [finalImage, setFinalImage] = useState<string | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [unsplashImages, setUnsplashImages] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>('background');
+  const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState<Position>({ x: 0, y: 0 });
+  
+  const foregroundRef = useRef<HTMLDivElement>(null);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    setError(null);
     const file = acceptedFiles[0];
-    if (file && file.type.startsWith('image/')) {
-      setSelectedImage(file);
-      const fileReader = new FileReader();
-      fileReader.onload = () => {
-        setPreviewUrl(fileReader.result as string);
-      };
-      fileReader.readAsDataURL(file);
-      setProcessedImage(null);
-    } else {
+    if (!file || !file.type.startsWith('image/')) {
       setError('Please upload a valid image file');
+      return;
     }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setPreviewUrl(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    setSelectedFile(file);
+    setProcessingStage(ProcessingStage.Uploaded);
+    setError(null);
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/*': ['.png', '.jpg', '.jpeg', '.webp']
+      'image/*': ['.jpeg', '.png', '.jpg', '.webp']
     },
     multiple: false
   });
 
   const handleRemoveBackground = async () => {
-    if (!selectedImage) return;
+    if (!selectedFile) return;
     
-    setError(null);
     setIsProcessing(true);
+    setProcessingStage(ProcessingStage.Processing);
     
     try {
       const formData = new FormData();
-      formData.append("size", "auto");
-      formData.append("image_file", selectedImage);
+      formData.append('image', selectedFile);
 
-      const response = await fetch("https://api.remove.bg/v1.0/removebg", {
-        method: "POST",
-        headers: {
-          "X-Api-Key": process.env.REACT_APP_REMOVE_BG_API_KEY || ''
-        },
+      const response = await fetch('http://localhost:3001/api/remove-background', {
+        method: 'POST',
         body: formData
       });
 
       if (!response.ok) {
-        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        throw new Error('Failed to remove background');
       }
 
-      const arrayBuffer = await response.arrayBuffer();
-      const blob = new Blob([arrayBuffer], { type: 'image/png' });
+      const blob = await response.blob();
       const processedImageUrl = URL.createObjectURL(blob);
       setProcessedImage(processedImageUrl);
-      setShowBackgroundPicker(true);
-      
-    } catch (err) {
-      console.error('Error removing background:', err);
-      setError(err instanceof Error ? err.message : 'Failed to process image. Please try again.');
+      setProcessingStage(ProcessingStage.BackgroundRemoved);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const handleSelectBackground = async (backgroundUrl: string) => {
-    if (!processedImage) return;
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!foregroundRef.current) return;
     
+    setIsDragging(true);
+    setDragStart({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y
+    });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !foregroundRef.current) return;
+
+    const newX = e.clientX - dragStart.x;
+    const newY = e.clientY - dragStart.y;
+    
+    setPosition({ x: newX, y: newY });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleUnsplashSearch();
+    }
+  };
+
+  const handleUnsplashSearch = async () => {
     try {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-
-      // Load background image
-      const bgImage = new Image();
-      bgImage.crossOrigin = "anonymous";
-      await new Promise((resolve, reject) => {
-        bgImage.onload = resolve;
-        bgImage.onerror = reject;
-        bgImage.src = backgroundUrl;
-      });
-
-      // Load processed image
-      const fgImage = new Image();
-      fgImage.crossOrigin = "anonymous";
-      await new Promise((resolve, reject) => {
-        fgImage.onload = resolve;
-        fgImage.onerror = reject;
-        fgImage.src = processedImage;
-      });
-
-      // Set canvas size to match the processed image
-      canvas.width = fgImage.width;
-      canvas.height = fgImage.height;
-
-      // Draw background image (scaled and centered)
-      const scale = Math.max(canvas.width / bgImage.width, canvas.height / bgImage.height);
-      const x = (canvas.width - bgImage.width * scale) / 2;
-      const y = (canvas.height - bgImage.height * scale) / 2;
-      
-      ctx.drawImage(bgImage, x, y, bgImage.width * scale, bgImage.height * scale);
-      
-      // Draw the processed image
-      ctx.drawImage(fgImage, 0, 0, canvas.width, canvas.height);
-
-      // Convert canvas to image URL
-      const finalImageUrl = canvas.toDataURL('image/png');
-      setFinalImage(finalImageUrl);
-      setShowBackgroundPicker(false);
-    } catch (err) {
-      console.error('Error compositing images:', err);
-      setError('Failed to combine images. Please try again.');
+      const response = await fetch(`http://localhost:3001/api/unsplash/search?query=${encodeURIComponent(searchQuery)}`);
+      if (!response.ok) throw new Error('Failed to fetch images');
+      const data = await response.json();
+      setUnsplashImages(data.results);
+    } catch (error) {
+      console.error('Error fetching Unsplash images:', error);
     }
   };
 
-  const handleReset = () => {
-    setSelectedImage(null);
-    setPreviewUrl(null);
-    setProcessedImage(null);
-    setFinalImage(null);
-    setError(null);
+  const handleBackgroundSelect = (imageUrl: string) => {
+    setSelectedBackgroundImage(imageUrl);
+    setPosition({ x: 0, y: 0 }); // Reset position when new background is selected
   };
 
-  const handleDownload = () => {
-    const imageToDownload = finalImage || processedImage;
-    if (imageToDownload) {
+  const handleDownload = (imageUrl: string) => {
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.download = 'processed-image.png';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleCapture = () => {
+    const container = document.querySelector('.composite-container');
+    if (!container) return;
+
+    html2canvas(container as HTMLElement).then((canvas: HTMLCanvasElement) => {
       const link = document.createElement('a');
-      link.href = imageToDownload;
-      link.download = 'processed-image.png';
-      document.body.appendChild(link);
+      link.download = 'composite-image.png';
+      link.href = canvas.toDataURL('image/png');
       link.click();
-      document.body.removeChild(link);
-    }
+    });
+  };
+
+  const renderCompositePreview = () => {
+    if (!selectedBackgroundImage || !processedImage) return null;
+
+    return (
+      <div className="composite-preview">
+        <h3>Preview</h3>
+        <div 
+          className="composite-container"
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+        >
+          <img
+            src={selectedBackgroundImage}
+            alt="Background"
+            className="background-image"
+          />
+          <div
+            ref={foregroundRef}
+            className="draggable-foreground"
+            onMouseDown={handleMouseDown}
+            style={{
+              transform: `translate(${position.x}px, ${position.y}px)`
+            }}
+          >
+            <img
+              src={processedImage}
+              alt="Foreground"
+            />
+          </div>
+        </div>
+        <button
+          onClick={handleCapture}
+          className="button"
+        >
+          Download Composite Image
+        </button>
+      </div>
+    );
   };
 
   return (
-    <div className="image-processor">
-      <div className="header">
-        <h1>AI Background Remover</h1>
-        <p>Transform your images instantly with our AI-powered background removal tool</p>
-      </div>
-
-      <div className="upload-section">
-        <div {...getRootProps()} className={`dropzone ${isDragActive ? 'active' : ''} ${previewUrl ? 'has-image' : ''}`}>
-          <input {...getInputProps()} />
-          {!previewUrl ? (
-            <div className="dropzone-content">
-              <i className="upload-icon">📁</i>
-              <p>{isDragActive ? 'Drop your image here' : 'Drag & drop an image, or click to select'}</p>
-              <span className="dropzone-hint">Supports JPG, PNG, WEBP</span>
-            </div>
-          ) : (
-            <div className="dropzone-content">
-              <p>Drop a new image to replace</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {error && (
-        <div className="error-message">
-          {error}
-        </div>
-      )}
-
-      <div className="image-preview-container">
-        {previewUrl && (
-          <div className="image-preview">
-            <div className="preview-header">
-              <h3>Original Image</h3>
-              <button className="reset-button" onClick={handleReset}>
-                Remove
+    <div className="image-processor-container">
+      <div className="image-upload-section">
+        {processingStage === ProcessingStage.Initial ? (
+          <div {...getRootProps()} className={`dropzone ${isDragActive ? 'active' : ''}`}>
+            <input {...getInputProps()} />
+            <p>Drag & drop an image here, or click to select</p>
+          </div>
+        ) : (
+          <div className="preview-container">
+            <img 
+              src={processedImage || previewUrl || ''} 
+              alt="Preview" 
+              className="preview-image" 
+            />
+            <div className="action-buttons">
+              <button 
+                onClick={() => setProcessingStage(ProcessingStage.Initial)}
+                className="button secondary"
+              >
+                Remove Image
               </button>
-            </div>
-            <div className="image-wrapper">
-              <img src={previewUrl} alt="Preview" />
-            </div>
-          </div>
-        )}
-        
-        {(processedImage || finalImage) && (
-          <div className="image-preview">
-            <div className="preview-header">
-              <h3>Processed Image</h3>
-              <div className="preview-actions">
-                {processedImage && !finalImage && (
-                  <button 
-                    className="change-bg-button"
-                    onClick={() => setShowBackgroundPicker(true)}
-                  >
-                    Change Background
-                  </button>
-                )}
-                <button className="download-button" onClick={handleDownload}>
-                  Download
+              {processingStage === ProcessingStage.Uploaded && (
+                <button 
+                  onClick={handleRemoveBackground}
+                  className="button"
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? 'Processing...' : 'Remove Background'}
                 </button>
-              </div>
+              )}
             </div>
-            <div className="image-wrapper">
-              <img 
-                src={finalImage || processedImage || ''} 
-                alt="Processed" 
-                style={{ display: finalImage || processedImage ? 'block' : 'none' }}
-              />
-            </div>
+            {processedImage && (
+              <button 
+                onClick={() => handleDownload(processedImage)}
+                className="button"
+              >
+                Download Image without Background
+              </button>
+            )}
           </div>
         )}
       </div>
 
-      {showBackgroundPicker && (
-        <BackgroundPicker
-          onSelectBackground={handleSelectBackground}
-          onClose={() => setShowBackgroundPicker(false)}
-        />
-      )}
-
-      <canvas ref={canvasRef} style={{ display: 'none' }} />
-
-      {previewUrl && (
-        <div className="action-buttons">
-          <button 
-            className={`process-button ${isProcessing ? 'processing' : ''}`}
-            onClick={handleRemoveBackground}
-            disabled={isProcessing}
-          >
-            {isProcessing ? (
-              <>
-                <span className="spinner"></span>
-                Processing...
-              </>
-            ) : (
-              'Remove Background'
-            )}
+      <div className="background-selection-section">
+        <div className="search-container">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={handleSearchKeyPress}
+            placeholder="Search backgrounds..."
+            className="search-input"
+          />
+          <button onClick={handleUnsplashSearch} className="button">
+            Search
           </button>
         </div>
-      )}
+
+        <div className="background-grid">
+          {unsplashImages.map((image) => (
+            <div 
+              key={image.id}
+              className={`background-item ${selectedBackgroundImage === image.urls.regular ? 'selected' : ''}`}
+              onClick={() => handleBackgroundSelect(image.urls.regular)}
+            >
+              <img src={image.urls.thumb} alt={image.alt_description || 'Background option'} />
+            </div>
+          ))}
+        </div>
+
+        {renderCompositePreview()}
+      </div>
     </div>
   );
 };
