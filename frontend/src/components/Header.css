@@ -19,6 +19,13 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.logo-section:hover {
+  opacity: 0.8;
 }
 
 .logo {
@@ -35,8 +42,88 @@
 }
 
 .nav-links {
+  position: relative;
   display: flex;
-  gap: 2rem;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.features-dropdown {
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.dropdown-icon {
+  font-size: 0.7rem;
+  margin-left: 0.25rem;
+  transition: transform 0.3s ease;
+}
+
+.features-dropdown:hover .dropdown-icon {
+  transform: rotate(180deg);
+}
+
+.features-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 300px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem;
+  z-index: 100;
+  margin-top: 0.5rem;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+}
+
+.features-dropdown:hover .features-dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #f0f4f8;
+}
+
+.feature-icon {
+  font-size: 2rem;
+  opacity: 0.8;
+}
+
+.feature-details {
+  flex-grow: 1;
+}
+
+.feature-details h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #2d3748;
+  transition: color 0.2s ease;
+}
+
+.feature-details p {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+  color: #718096;
 }
 
 .nav-link {
