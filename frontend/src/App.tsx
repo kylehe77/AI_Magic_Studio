@@ -19,7 +19,9 @@ function App() {
             <Route path="/text-processor" element={<TextProcessor />} />
           </Routes>
         </main>
+
         <Footer />
+
       </div>
     </Router>
   );

@@ -38,9 +38,18 @@
 }
 
 .nav-links {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 1.5rem;
+}
+
+.features-dropdown {
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  gap: 1.5rem;
+
 }
 
 .features-dropdown {
