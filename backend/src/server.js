@@ -1,64 +1,38 @@
+require('dotenv').config();
+
 const fs = require('fs');
 const path = require('path');
+const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
-const dotenvExpand = require('dotenv-expand');
 const multer = require('multer');
-const axios = require('axios');
 const FormData = require('form-data');
 const { createApi } = require('unsplash-js');
-const nodeFetch = require('node-fetch');
+const fetch = require('node-fetch');
+const OpenAI = require('openai');
+const axios = require('axios');
 
 // Manually read and log .env file contents
 const envPath = path.resolve(__dirname, '../.env');
 console.log('Attempting to read .env file from:', envPath);
 
 try {
-  const envFileContents = fs.readFileSync(envPath, 'utf8');
   console.log('Raw .env file contents:');
-  console.log(envFileContents);
+  console.log(fs.readFileSync(envPath, 'utf8'));
 } catch (error) {
   console.error('Error reading .env file:', error);
 }
 
-// Load environment variables with manual parsing as a fallback
-const result = dotenv.config({ 
-  path: envPath 
-});
-
-if (result.error) {
-  console.error('dotenv config error:', result.error);
-}
-
-// Manually parse environment variables
-const parsedEnv = dotenv.parse(fs.readFileSync(envPath));
-console.log('Parsed environment variables:');
-Object.keys(parsedEnv).forEach(key => {
-  process.env[key] = parsedEnv[key];
-  console.log(`${key}: ${parsedEnv[key]}`);
-});
-
-dotenvExpand.expand(result);
-
-console.log('Explicitly loading .env from:', envPath);
-console.log('Current working directory:', process.cwd());
-console.log('Environment variables loaded:');
-console.log('UNSPLASH_ACCESS_KEY:', process.env.UNSPLASH_ACCESS_KEY ? 'SET' : 'NOT SET');
-console.log('REMOVEBG_API_KEY:', process.env.REMOVEBG_API_KEY ? 'SET' : 'NOT SET');
-console.log('Full process.env keys:', Object.keys(process.env));
-
-const express = require('express');
-const cors = require('cors');
-const fetch = require('node-fetch');
-
 const app = express();
 
 // Ensure global fetch is available
-global.fetch = nodeFetch;
+global.fetch = fetch;
 
 // Configure Unsplash API
 const unsplash = createApi({
   accessKey: process.env.UNSPLASH_ACCESS_KEY,
-  fetch: nodeFetch
+  fetch: fetch
 });
 
 // Default backgrounds in case of API failure
@@ -163,30 +137,26 @@ if (!REMOVEBG_API_KEY) {
 
 console.log('✅ Environment variables successfully validated');
 
-// Comprehensive CORS configuration
+// Middleware
 app.use(cors({
-  origin: [
-    'http://localhost:3000',   
-    'http://127.0.0.1:3000',   
-    'http://localhost:3001',   
-    'http://127.0.0.1:3001'    
-  ],
-  methods: ['GET', 'POST', 'OPTIONS'],
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Body parsing middleware
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(multerErrorHandler);
 
-// Error handling middleware
+// Add global error handler
 app.use((err, req, res, next) => {
   console.error('Unhandled Error:', err);
-  res.status(500).json({ 
-    error: 'Internal Server Error', 
+  res.status(500).json({
+    error: 'Internal Server Error',
     message: err.message,
-    stack: err.stack 
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
 });
 
@@ -231,7 +201,7 @@ app.get('/api/unsplash/search', async (req, res) => {
     console.log('Unsplash API Request URL:', apiUrl.toString());
 
     try {
-      const response = await nodeFetch(apiUrl, {
+      const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
           'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`,
@@ -313,7 +283,7 @@ app.get('/api/unsplash/test', async (req, res) => {
 
     try {
       // Direct fetch using node-fetch
-      const apiResponse = await nodeFetch(apiUrl, {
+      const apiResponse = await fetch(apiUrl, {
         method: 'GET',
         headers: {
           'Authorization': `Client-ID ${process.env.UNSPLASH_ACCESS_KEY}`,
@@ -490,6 +460,163 @@ app.post('/api/remove-background', upload.single('image'), async (req, res) => {
   }
 });
 
+async function callOpenRouterAPI(prompt) {
+  try {
+    console.log('OpenRouter API Request:', {
+      model: "anthropic/claude-3.5-haiku:beta",
+      prompt: prompt
+    });
+
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`, 
+        "HTTP-Referer": process.env.SITE_URL || "https://default-site.com", 
+        "X-Title": process.env.SITE_NAME || "AI Magic Studio",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        "model": "anthropic/claude-3.5-haiku:beta",
+        "messages": [
+          {
+            "role": "user",
+            "content": prompt
+          }
+        ],
+        "max_tokens": 1000  // Maintain existing max tokens setting
+      })
+    });
+
+    console.log('OpenRouter API Response Status:', response.status);
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error('OpenRouter API Error Body:', errorBody);
+      throw new Error(`API call failed with status ${response.status}: ${errorBody}`);
+    }
+
+    const data = await response.json();
+    console.log('OpenRouter API Full Response:', JSON.stringify(data, null, 2));
+
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      throw new Error('Invalid response structure from OpenRouter API');
+    }
+
+    return data.choices[0].message.content; 
+  } catch (error) {
+    console.error("Detailed Error calling OpenRouter API:", {
+      message: error.message,
+      stack: error.stack
+    });
+    throw error;
+  }
+}
+
+// Enhanced translation route with more language support
+app.post('/api/text/translate', async (req, res) => {
+  try {
+    const { text, sourceLanguage = 'auto', targetLanguage } = req.body;
+    console.log('Translate Request:', req.body);
+    
+    // Validate languages
+    const supportedLanguages = ['zh', 'en', 'ja', 'es', 'fr', 'de', 'ko', 'ru', 'ar'];
+    if (!supportedLanguages.includes(targetLanguage)) {
+      return res.status(400).json({ error: 'Unsupported target language' });
+    }
+
+    // Construct a more flexible translation prompt
+    const prompt = `You are a professional translator. Translate the following text from ${sourceLanguage} to ${targetLanguage} with high accuracy and preserve the original tone and context:
+
+Source Text: ${text}
+
+Translation Guidelines:
+- Maintain the original meaning
+- Adapt cultural nuances
+- Ensure natural-sounding translation in the target language`;
+
+    const translation = await callOpenRouterAPI(prompt);
+    res.json({ translation });
+  } catch (error) {
+    console.error('Translate Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// New Social Media Content Generation Route
+app.post('/api/text/social-content', async (req, res) => {
+  try {
+    const { 
+      topic, 
+      platform = 'general', 
+      tone = 'engaging', 
+      keywords = [], 
+      additionalContext = '' 
+    } = req.body;
+
+    console.log('Social Content Request:', req.body);
+
+    // Construct a comprehensive prompt for content generation
+    const prompt = `You are a professional social media content creator. Generate a compelling and viral-worthy post about the following topic:
+
+Topic: ${topic}
+Platform: ${platform}
+Tone: ${tone}
+Keywords: ${keywords.join(', ')}
+Additional Context: ${additionalContext}
+
+Content Generation Guidelines:
+1. Create an attention-grabbing headline
+2. Write a concise, engaging post (150-250 words)
+3. Include relevant hashtags
+4. Adapt the style to the specified platform
+5. Incorporate the keywords naturally
+6. Aim to provoke emotion, curiosity, or action
+
+Your task is to craft content that maximizes engagement and shareability.`;
+
+    const socialContent = await callOpenRouterAPI(prompt);
+    
+    // Optional: Add some post-processing or formatting
+    const formattedContent = {
+      headline: socialContent.split('\n')[0],
+      body: socialContent.split('\n').slice(1).join('\n').trim(),
+      hashtags: keywords.map(kw => `#${kw.replace(/\s+/g, '')}`)
+    };
+
+    res.json(formattedContent);
+  } catch (error) {
+    console.error('Social Content Generation Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Add text processing routes directly in server.js
+app.post('/api/text/summarize', async (req, res) => {
+  try {
+    const { text, language } = req.body;
+    console.log('Summarize Request:', req.body);
+    const prompt = `Summarize the following text in ${language}: ${text}`;
+    const summary = await callOpenRouterAPI(prompt);
+    res.json({ summary });
+  } catch (error) {
+    console.error('Summarize Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/text/grammar-check', async (req, res) => {
+  try {
+    const { text, language } = req.body;
+    console.log('Grammar Check Request:', req.body);
+    const prompt = `Check the grammar of the following text in ${language}: ${text}`;
+    const grammarCheck = await callOpenRouterAPI(prompt);
+    res.json({ grammarCheck });
+  } catch (error) {
+    console.error('Grammar Check Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 const server = app.listen(port, '0.0.0.0', () => {
   console.log('===========================================');
   console.log(`🚀 Server is running on:`);
@@ -498,9 +625,11 @@ const server = app.listen(port, '0.0.0.0', () => {
   console.log(`   - Network: http://0.0.0.0:${port}`);
   console.log('===========================================');
   console.log('Available Routes:');
-  console.log('   - GET /');
-  console.log('   - GET /api/unsplash/search');
-  console.log('   - POST /api/remove-background');
+  app._router.stack.forEach((r) => {
+    if (r.route && r.route.path) {
+      console.log(`   - ${Object.keys(r.route.methods).join(', ').toUpperCase()} ${r.route.path}`);
+    }
+  });
   console.log('===========================================');
 });
 
@@ -508,6 +637,7 @@ server.on('error', (error) => {
   console.error('❌ Server Startup Error:', error);
   if (error.code === 'EADDRINUSE') {
     console.error(`Port ${port} is already in use. Is another server running?`);
+    process.exit(1);
   }
 });
 

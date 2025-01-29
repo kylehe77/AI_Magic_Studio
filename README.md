@@ -70,11 +70,43 @@ AI_web/
 
 - remove.bg API for background removal
 - Unsplash API for background images
+- OpenRouter API for AI model integration
+
+## Integrated APIs
+
+Our project leverages several powerful APIs:
+- remove.bg API for background removal
+- Unsplash API for background images
+- OpenRouter API for AI model integration
+
+## OpenRouter AI Configuration
+
+### API Key Setup
+
+1. Register an account at [OpenRouter Platform](https://openrouter.ai/)
+2. Obtain your API key from the developer console
+3. Set the environment variable `OPENROUTER_API_KEY` with your actual API key
+
+**Important Configuration Notes**:
+- OpenRouter supports multiple AI models
+- Default model is set to Anthropic Claude 2
+- You can easily switch models in the service configuration
+- Provides a unified API for different AI providers
+
+**Recommended Models**:
+- `anthropic/claude-2`: High-quality, versatile model
+- `openai/gpt-3.5-turbo`: Cost-effective option
+- `google/palm-2`: Alternative model
+
+**Security Recommendations**:
+- Never commit your API key to version control
+- Use environment variables
+- Protect your API key to prevent unauthorized usage
 
 ## Environment Variables
 
 Backend (.env):
-- `UNSPLASH_ACCESS_KEY`: Your Unsplash API access key
+- `OPENROUTER_API_KEY`: Your OpenRouter API key
 
 Frontend (.env):
 - `REACT_APP_REMOVE_BG_API_KEY`: Your remove.bg API key
