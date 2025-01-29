@@ -53,13 +53,8 @@ const Header: React.FC = () => {
               >
                 {features.map((feature) => (
                   <div 
-<<<<<<< HEAD
                     key={feature.path} 
                     className="feature-item"
-=======
-                    key={feature.name} 
-                    className="dropdown-item"
->>>>>>> 9345aca44613fccd2d8ab97a7b8264fb3402d26b
                     onClick={() => handleFeatureClick(feature.path)}
                   >
                     <span className="feature-icon">{feature.icon}</span>
@@ -72,12 +67,7 @@ const Header: React.FC = () => {
               </div>
             )}
           </div>
-<<<<<<< HEAD
-=======
 
-          <a href="#how-it-works" className="nav-link">How it Works</a>
-          <a href="#pricing" className="nav-link">Pricing</a>
->>>>>>> 9345aca44613fccd2d8ab97a7b8264fb3402d26b
         </div>
 
         <div className="auth-buttons">

@@ -1,118 +1,124 @@
-# AI Background Remover
+# AI Magic Studio
 
-A web application that removes image backgrounds and allows you to set new backgrounds using Unsplash images.
+AI Magic Studio is a cutting-edge web application that leverages AI technologies to transform and process images and text with powerful, user-friendly tools.
 
-## Project Structure
+## 🚀 Project Overview
+
+AI Magic Studio provides two primary AI-powered features:
+- **Image Processing**: Remove backgrounds, edit, and transform images
+- **Text Processing**: Generate, edit, and enhance text using advanced AI capabilities
+
+## 📂 Project Structure
 
 ```
-AI_web/
-├── backend/               # Backend server code
+AI_Magic_Studio/
+├── backend/
 │   ├── src/
-│   │   └── server.js     # Express server with Unsplash API integration
-│   └── package.json      # Backend dependencies
+│   │   ├── server.js         # Main Express server file
+│   │   └── uploads/          # Temporary storage for uploaded files during processing
+│   ├── .env                  # Environment configuration
+│   └── package.json          # Backend dependencies
 │
-└── frontend/             # React frontend code
-    ├── public/           # Static files
+└── frontend/
+    ├── public/               # Static assets
     └── src/
-        ├── components/   # React components
-        │   ├── BackgroundPicker.tsx    # Unsplash image picker
-        │   ├── ImageProcessor.tsx      # Main image processing component
-        │   └── Header.tsx             # Application header
-        ├── App.tsx       # Root component
-        └── index.tsx     # Entry point
+        ├── components/       # Reusable React components
+        │   ├── Header.tsx    # Navigation header
+        │   ├── Footer.tsx    # Page footer
+        │   ├── ImageProcessor.tsx  # Image processing component
+        │   └── ...
+        ├── pages/            # Page-level components
+        │   ├── HomePage.tsx  # Landing page
+        │   ├── TextProcessor.tsx  # Text processing page
+        │   └── ...
+        ├── App.tsx           # Main application component
+        └── index.tsx         # React entry point
 ```
 
-## Features
+### 📁 Uploads Directory
+The `uploads/` directory in the backend is a temporary storage location for files uploaded during image processing. Files are temporarily stored here before being processed (e.g., background removal) and are typically deleted after processing.
 
-- Upload images via drag & drop or file picker
-- Remove image backgrounds using remove.bg API
-- Search and select backgrounds from Unsplash
-- Download processed images
+## ✨ Features
 
-## Setup and Running
+### Image Processing
+- Background removal
+- Image transformation
+- AI-powered editing tools
 
-1. Set up environment variables:
+### Text Processing
+- Text generation
+- Content enhancement
+- Multi-purpose text tools
+
+## 🛠 Technologies
+
+### Frontend
+- React
+- TypeScript
+- React Router
+- CSS3 with modern styling
+
+### Backend
+- Node.js
+- Express.js
+- AI Integration APIs
+
+## 🔧 Setup and Installation
+
+### Prerequisites
+- Node.js (v14+ recommended)
+- npm or Yarn
+
+### Installation Steps
+
+1. Clone the repository
    ```bash
-   # In backend directory
-   cp .env.example .env
-   # Edit .env and add your Unsplash API key
-   
-   # In frontend directory
-   cp .env.example .env
-   # Edit .env and add your Remove.bg API key
+   git clone https://github.com/kylehe77/AI_Magic_Studio.git
+   cd AI_Magic_Studio
    ```
 
-2. Install dependencies:
+2. Install backend dependencies
    ```bash
-   # Install backend dependencies
    cd backend
    npm install
+   ```
 
-   # Install frontend dependencies
+3. Install frontend dependencies
+   ```bash
    cd ../frontend
    npm install
    ```
 
-3. Start the servers:
+4. Configure environment variables
+   - Create `.env` files in both `backend` and `frontend` directories
+   - Add necessary API keys for:
+     * Unsplash
+     * Remove.bg
+     * OpenAI/OpenRouter
+
+5. Run the application
    ```bash
-   # Start backend server (from backend directory)
+   # In backend directory
    npm start
 
-   # Start frontend development server (from frontend directory)
+   # In another terminal, in frontend directory
    npm start
    ```
 
-4. Access the application:
-   - Frontend: http://localhost:3000
-   - Backend: http://localhost:3001
+## 🌐 Access the Application
+- Frontend: `http://localhost:3000`
+- Backend API: `http://localhost:3001`
 
-## APIs Used
+## 🤝 Contributing
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-- remove.bg API for background removal
-- Unsplash API for background images
-- OpenRouter API for AI model integration
+## 📄 License
+Distributed under the MIT License. See `LICENSE` for more information.
 
-## Integrated APIs
-
-Our project leverages several powerful APIs:
-- remove.bg API for background removal
-- Unsplash API for background images
-- OpenRouter API for AI model integration
-
-## OpenRouter AI Configuration
-
-### API Key Setup
-
-1. Register an account at [OpenRouter Platform](https://openrouter.ai/)
-2. Obtain your API key from the developer console
-3. Set the environment variable `OPENROUTER_API_KEY` with your actual API key
-
-**Important Configuration Notes**:
-- OpenRouter supports multiple AI models
-- Default model is set to Anthropic Claude 2
-- You can easily switch models in the service configuration
-- Provides a unified API for different AI providers
-
-**Recommended Models**:
-- `anthropic/claude-2`: High-quality, versatile model
-- `openai/gpt-3.5-turbo`: Cost-effective option
-- `google/palm-2`: Alternative model
-
-**Security Recommendations**:
-- Never commit your API key to version control
-- Use environment variables
-- Protect your API key to prevent unauthorized usage
-
-## Environment Variables
-
-Backend (.env):
-- `OPENROUTER_API_KEY`: Your OpenRouter API key
-
-Frontend (.env):
-- `REACT_APP_REMOVE_BG_API_KEY`: Your remove.bg API key
-
-## Security Notes
-
-- Never commit .env files to version control
-- Keep your API keys private
-- Use environment variables for all sensitive information
+## 📧 Contact
+Kyle He - kyleh77@gmail.com
+Project Link: [https://github.com/kylehe77/AI_Magic_Studio](https://github.com/kylehe77/AI_Magic_Studio)

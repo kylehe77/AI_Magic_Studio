@@ -38,18 +38,9 @@
 }
 
 .nav-links {
-  position: relative;
   display: flex;
   align-items: center;
   gap: 1.5rem;
-}
-
-.features-dropdown {
-  position: relative;
-  cursor: pointer;
-  display: flex;
-  gap: 1.5rem;
-
 }
 
 .features-dropdown {
@@ -95,6 +86,7 @@
   animation: fadeIn 0.3s ease;
   border: 1px solid rgba(74, 144, 226, 0.1);
   overflow: hidden;
+  z-index: 100;
 }
 
 @keyframes fadeIn {

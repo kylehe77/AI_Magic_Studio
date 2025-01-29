@@ -8,7 +8,7 @@ const Footer: React.FC = () => {
   const socialLinks = [
     { 
       name: 'Facebook', 
-      icon: '🐦', 
+      icon: '🌐', 
       url: 'https://www.facebook.com/kyle.he.98622' 
     },
     { 
@@ -26,9 +26,7 @@ const Footer: React.FC = () => {
   const quickLinks = [
     { name: 'Home', path: '/' },
     { name: 'Features', path: '/features' },
-    { name: 'Text Processing', path: '/text-processor' },
-    { name: 'Privacy Policy', path: '/privacy' },
-    { name: 'Terms of Service', path: '/terms' }
+    { name: 'Text Processing', path: '/text-processor' }
   ];
 
   return (
@@ -48,6 +46,7 @@ const Footer: React.FC = () => {
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="social-link"
+                title={social.name}
               >
                 {social.icon}
               </a>
@@ -55,31 +54,13 @@ const Footer: React.FC = () => {
           </div>
         </div>
 
-        <div className="footer-section links">
+        <div className="footer-section">
           <h4>Quick Links</h4>
-          {quickLinks.map((link) => (
-            <Link key={link.name} to={link.path} className="footer-link">
-              {link.name}
-            </Link>
-          ))}
-        </div>
-
-        <div className="footer-section contact">
-          <h4>Contact Us</h4>
-          <p>Email: kyleh77@gmail.com</p>
-          <p>Phone: +1 (23) 123-4567</p>
-        </div>
-
-        <div className="footer-section newsletter">
-          <h4>Stay Updated</h4>
-          <form className="newsletter-form">
-            <input 
-              type="email" 
-              placeholder="Enter your email" 
-              required 
-            />
-            <button type="submit">Subscribe</button>
-          </form>
+          <div className="footer-links">
+            {quickLinks.map((link) => (
+              <Link key={link.name} to={link.path}>{link.name}</Link>
+            ))}
+          </div>
         </div>
       </div>
 
