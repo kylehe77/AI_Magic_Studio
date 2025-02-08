@@ -12,6 +12,16 @@ const { createApi } = require('unsplash-js');
 const fetch = require('node-fetch');
 const OpenAI = require('openai');
 const axios = require('axios');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const sequelize = require('../config/database');
+const { sendVerificationEmail } = require('../services/emailService');
+const crypto = require('crypto');
+const { Op } = require('sequelize');
+
+const db = require('../models');
+console.log('Loaded models:', db);
+const User = db.User;
 
 // Manually read and log .env file contents
 const envPath = path.resolve(__dirname, '../.env');
@@ -23,6 +33,20 @@ try {
 } catch (error) {
   console.error('Error reading .env file:', error);
 }
+
+// Test database connection
+sequelize.authenticate()
+  .then(() => {
+    console.log('Database connection has been established successfully.');
+    // Sync all models
+    return sequelize.sync({ force: false });
+  })
+  .then(() => {
+    console.log('All models were synchronized successfully.');
+  })
+  .catch(err => {
+    console.error('Unable to connect to the database:', err);
+  });
 
 const app = express();
 
@@ -148,6 +172,9 @@ app.use(cors({
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 app.use(multerErrorHandler);
 
 // Add global error handler
@@ -158,6 +185,25 @@ app.use((err, req, res, next) => {
     message: err.message,
     stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
+});
+
+// 测试邮件路由
+app.post('/api/test-email', async (req, res) => {
+  try {
+    console.log('收到测试邮件请求:', req.body);
+    await sendVerificationEmail(req.body.email, 'test-token-' + Date.now());
+    res.json({ 
+      success: true,
+      message: `测试邮件已发送至 ${req.body.email}，请检查收件箱（含垃圾邮件）`
+    });
+  } catch (error) {
+    console.error('邮件发送失败:', error);
+    res.status(500).json({ 
+      error: '邮件发送失败',
+      details: error.message,
+      solution: '请检查：1) .env配置 2) Gmail安全设置 3) 服务器网络连接'
+    });
+  }
 });
 
 // Add a root route
@@ -614,6 +660,131 @@ app.post('/api/text/grammar-check', async (req, res) => {
   } catch (error) {
     console.error('Grammar Check Error:', error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+// 用户注册
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    // 检查邮箱是否已注册
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ error: '该邮箱已被注册' });
+    }
+
+    // 生成验证信息
+    const verificationToken = crypto.randomBytes(20).toString('hex');
+    const verificationExpires = new Date(Date.now() + 86400000); // 24小时有效
+
+    // 生成验证链接
+    const verificationLink = `http://localhost:3000/verify-email?token=${verificationToken}`;
+
+    // 创建用户
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({
+      email,
+      password: hashedPassword,
+      emailVerificationToken: verificationToken,
+      emailVerificationExpires: verificationExpires,
+      isVerified: false
+    });
+
+    // 发送验证邮件
+    await sendVerificationEmail(email, verificationLink);
+
+    res.status(201).json({
+      success: true,
+      message: '验证邮件已发送，请检查您的邮箱'
+    });
+
+  } catch (error) {
+    console.error('注册错误:', error);
+    res.status(500).json({ 
+      error: '注册失败',
+      details: error.message 
+    });
+  }
+});
+
+// 邮箱验证
+app.get('/api/auth/verify-email', async (req, res) => {
+  try {
+    const { token } = req.query;
+    
+    const user = await User.findOne({
+      where: {
+        emailVerificationToken: token,
+        emailVerificationExpires: { [Op.gt]: new Date() }
+      }
+    });
+
+    if (!user) {
+      return res.status(400).json({ 
+        error: '验证链接无效或已过期',
+        solution: '请重新注册或申请新的验证链接' 
+      });
+    }
+
+    await user.update({
+      isVerified: true,
+      emailVerificationToken: null,
+      emailVerificationExpires: null
+    });
+
+    res.json({ 
+      success: true,
+      message: '邮箱验证成功！现在可以登录' 
+    });
+    
+  } catch (error) {
+    res.status(500).json({ error: '验证失败' });
+  }
+});
+
+// 登录功能
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    const user = await User.findOne({ where: { email } });
+    
+    // 验证基础信息
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ error: '邮箱或密码错误' });
+    }
+
+    // 验证邮箱状态
+    if (!user.isVerified) {
+      return res.status(403).json({ 
+        error: '邮箱未验证',
+        solution: {
+          resendEmail: '/api/auth/resend-verification',
+          contactSupport: 'support@aimagic.studio'
+        }
+      });
+    }
+
+    // 生成JWT
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({ 
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        createdAt: user.createdAt
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: '登录失败' });
   }
 });
 
