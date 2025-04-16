@@ -48,4 +48,5 @@
     "@types/html2canvas": "^0.5.35",
     "@types/react-router-dom": "^5.3.3"
   }
+  
 }

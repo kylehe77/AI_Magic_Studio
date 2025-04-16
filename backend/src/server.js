@@ -18,6 +18,7 @@ const sequelize = require('../config/database');
 const { sendVerificationEmail } = require('../services/emailService');
 const crypto = require('crypto');
 const { Op } = require('sequelize');
+const serverless = require('serverless-http');
 
 const db = require('../models');
 console.log('Loaded models:', db);
@@ -201,7 +202,7 @@ app.post('/api/test-email', async (req, res) => {
     res.status(500).json({ 
       error: '邮件发送失败',
       details: error.message,
-      solution: '请检查：1) .env配置 2) Gmail安全设置 3) 服务器网络连接'
+      solution: '请检查:1) .env配置 2) Gmail安全设置 3) 服务器网络连接'
     });
   }
 });
@@ -813,3 +814,4 @@ server.on('error', (error) => {
 });
 
 module.exports = app;
+module.exports.handler = serverless(app);
