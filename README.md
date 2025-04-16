@@ -1,6 +1,7 @@
 # AI Magic Studio
 
 AI Magic Studio is a cutting-edge web application that leverages AI technologies to transform and process images and text with powerful, user-friendly tools.
+You are welcome to explore this website through:  https://ai-magic-studio.onrender.com/
 
 ## 🚀 Project Overview
 
@@ -33,6 +34,7 @@ AI_Magic_Studio/
         │   └── ...
         ├── App.tsx           # Main application component
         └── index.tsx         # React entry point
+        └── .env                  # Environment configuration    
 ```
 
 ### 📁 Uploads Directory
