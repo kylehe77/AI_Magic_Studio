@@ -1,5 +1,6 @@
 require('dotenv').config();
 
+const app = express();
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
@@ -26,6 +27,8 @@ const db = require('../models');
 console.log('Loaded models:', db);
 const User = db.User;
 
+
+
 // Manually read and log .env file contents
 const envPath = path.resolve(__dirname, '../.env');
 console.log('Attempting to read .env file from:', envPath);
@@ -38,20 +41,45 @@ try {
 }
 
 // Test database connection
+// Test DB connection & sync models
 sequelize.authenticate()
   .then(() => {
-    console.log('Database connection has been established successfully.');
-    // Sync all models
-    return sequelize.sync({ force: false });
+    console.log('✅ Database connection has been established successfully.');
+    return sequelize.sync({ force: false }); // force: false 避免清空表
   })
   .then(() => {
-    console.log('All models were synchronized successfully.');
+    console.log('✅ All models were synchronized successfully.');
+
+    // ✅ 在模型同步完成后才启动服务器
+    const server = app.listen(port, '0.0.0.0', () => {
+      console.log('===========================================');
+      console.log(`🚀 Server is running on:`);
+      console.log(`   - Port: ${port}`);
+      console.log(`   - Local: http://localhost:${port}`);
+      console.log(`   - Network: http://0.0.0.0:${port}`);
+      console.log('===========================================');
+      console.log('Available Routes:');
+      app._router.stack.forEach((r) => {
+        if (r.route && r.route.path) {
+          console.log(`   - ${Object.keys(r.route.methods).join(', ').toUpperCase()} ${r.route.path}`);
+        }
+      });
+      console.log('===========================================');
+    });
+
+    server.on('error', (error) => {
+      console.error('❌ Server Startup Error:', error);
+      if (error.code === 'EADDRINUSE') {
+        console.error(`Port ${port} is already in use. Is another server running?`);
+        process.exit(1);
+      }
+    });
   })
   .catch(err => {
-    console.error('Unable to connect to the database:', err);
+    console.error('❌ Unable to connect to the database or sync models:', err);
   });
 
-const app = express();
+
 
 // Ensure global fetch is available
 global.fetch = fetch;
@@ -796,29 +824,6 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-const server = app.listen(port, '0.0.0.0', () => {
-  console.log('===========================================');
-  console.log(`🚀 Server is running on:`);
-  console.log(`   - Port: ${port}`);
-  console.log(`   - Local: http://localhost:${port}`);
-  console.log(`   - Network: http://0.0.0.0:${port}`);
-  console.log('===========================================');
-  console.log('Available Routes:');
-  app._router.stack.forEach((r) => {
-    if (r.route && r.route.path) {
-      console.log(`   - ${Object.keys(r.route.methods).join(', ').toUpperCase()} ${r.route.path}`);
-    }
-  });
-  console.log('===========================================');
-});
-
-server.on('error', (error) => {
-  console.error('❌ Server Startup Error:', error);
-  if (error.code === 'EADDRINUSE') {
-    console.error(`Port ${port} is already in use. Is another server running?`);
-    process.exit(1);
-  }
-});
 
 module.exports = app;
 module.exports.handler = serverless(app);
