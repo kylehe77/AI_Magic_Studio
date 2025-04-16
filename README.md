@@ -33,6 +33,7 @@ AI_Magic_Studio/
         │   └── ...
         ├── App.tsx           # Main application component
         └── index.tsx         # React entry point
+        └── .env                  # Environment configuration    
 ```
 
 ### 📁 Uploads Directory
@@ -121,4 +122,4 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## 📧 Contact
 Kyle He - kyleh77@gmail.com
-Project Link: [https://github.com/kylehe77/AI_Magic_Studio](https://github.com/kylehe77/AI_Magic_Studio)
+Project Link: [(https://ai-magic-studio.onrender.com/)](https://github.com/kylehe77/AI_Magic_Studio)
