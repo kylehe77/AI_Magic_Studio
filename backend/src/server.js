@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-const app = express();
+
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
@@ -20,6 +20,7 @@ const { sendVerificationEmail } = require('../services/emailService');
 const crypto = require('crypto');
 const { Op } = require('sequelize');
 const serverless = require('serverless-http');
+const app = express();
 
 const BASE_URL = process.env.REACT_APP_URL;
 
