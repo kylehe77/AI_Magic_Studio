@@ -67,7 +67,7 @@ const ImageProcessor: React.FC = () => {
       const formData = new FormData();
       formData.append('image', selectedFile);
 
-      const response = await fetch('http://localhost:3001/api/remove-background', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/remove-background`, {
         method: 'POST',
         body: formData
       });

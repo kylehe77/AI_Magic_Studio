@@ -20,7 +20,7 @@ const VerifyEmailComponent: React.FC = () => {
             if (!token) return; // Early return if no token
 
             try {
-                const response = await axios.get<VerifyEmailResponse>(`http://localhost:3001/api/auth/verify-email?token=${token}`);
+                const response = await axios.get<VerifyEmailResponse>(`${process.env.REACT_APP_API_URL}/api/auth/verify-email?token=${token}`);
                 alert(response.data.message); // Show success message
                 // Optionally redirect to login or home page
             } catch (error: unknown) {

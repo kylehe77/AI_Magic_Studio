@@ -59,7 +59,7 @@ const TextProcessor: React.FC = () => {
     setProcessedText('Processing...');
 
     try {
-      let endpoint = `/api/text/${processingType}`;
+      let endpoint = `${process.env.REACT_APP_API_URL}/api/text/${processingType}`;
       let body: any = { text: inputText };
 
       switch(processingType) {
