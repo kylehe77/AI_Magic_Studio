@@ -20,6 +20,8 @@ const crypto = require('crypto');
 const { Op } = require('sequelize');
 const serverless = require('serverless-http');
 
+const BASE_URL = process.env.REACT_APP_URL;
+
 const db = require('../models');
 console.log('Loaded models:', db);
 const User = db.User;
@@ -189,20 +191,20 @@ app.use((err, req, res, next) => {
 });
 
 // 测试邮件路由
-app.post('/api/test-email', async (req, res) => {
+app.post('/api/register', async (req, res) => {
   try {
-    console.log('收到测试邮件请求:', req.body);
+    console.log('Receive Email:', req.body);
     await sendVerificationEmail(req.body.email, 'test-token-' + Date.now());
     res.json({ 
       success: true,
-      message: `测试邮件已发送至 ${req.body.email}，请检查收件箱（含垃圾邮件）`
+      message: `Email has sent to ${req.body.email}，please check your inbox`
     });
   } catch (error) {
-    console.error('邮件发送失败:', error);
+    console.error('failed to send email:', error);
     res.status(500).json({ 
-      error: '邮件发送失败',
+      error: 'failed to send email',
       details: error.message,
-      solution: '请检查:1) .env配置 2) Gmail安全设置 3) 服务器网络连接'
+      solution: 'Please try again later'
     });
   }
 });
@@ -672,7 +674,7 @@ app.post('/api/auth/register', async (req, res) => {
     // 检查邮箱是否已注册
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
-      return res.status(400).json({ error: '该邮箱已被注册' });
+      return res.status(400).json({ error: 'this email is already registered' });
     }
 
     // 生成验证信息
@@ -680,7 +682,7 @@ app.post('/api/auth/register', async (req, res) => {
     const verificationExpires = new Date(Date.now() + 86400000); // 24小时有效
 
     // 生成验证链接
-    const verificationLink = `http://localhost:3000/verify-email?token=${verificationToken}`;
+    const verificationLink = `${BASE_URL}/verify-email?token=${verificationToken}`;
 
     // 创建用户
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -753,7 +755,7 @@ app.post('/api/auth/login', async (req, res) => {
     
     // 验证基础信息
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ error: '邮箱或密码错误' });
+      return res.status(401).json({ error: 'emaill address or password is incorrect' });
     }
 
     // 验证邮箱状态
