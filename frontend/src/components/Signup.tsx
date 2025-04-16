@@ -9,6 +9,7 @@ const Signup: React.FC = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [agreeToTerms, setAgreeToTerms] = useState(false);
     const navigate = useNavigate();
+    const baseURL = process.env.REACT_APP_API_URL;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -17,7 +18,7 @@ const Signup: React.FC = () => {
             return;
         }
         try {
-            await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/register`, {
+            await axios.post(`${baseURL}/api/auth/register`, {
                 email,
                 password,
             });

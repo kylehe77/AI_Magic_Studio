@@ -12,11 +12,12 @@ const Login: React.FC = () => {
     const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(false);
     const navigate = useNavigate();
-
+    const baseURL = process.env.REACT_APP_API_URL;
+    
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const response = await axios.post<LoginResponse>(`${process.env.REACT_APP_API_URL}/api/auth/login`, {
+            const response = await axios.post<LoginResponse>(`${baseURL}/api/auth/login`, {
                 email,
                 password,
             });

@@ -30,6 +30,7 @@ const ImageProcessor: React.FC = () => {
   const [dragStart, setDragStart] = useState<Position>({ x: 0, y: 0 });
   
   const foregroundRef = useRef<HTMLDivElement>(null);
+  const baseURL = process.env.REACT_APP_API_URL;
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -67,7 +68,7 @@ const ImageProcessor: React.FC = () => {
       const formData = new FormData();
       formData.append('image', selectedFile);
 
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/remove-background`, {
+      const response = await fetch(`${baseURL}/api/remove-background`, {
         method: 'POST',
         body: formData
       });
@@ -118,7 +119,7 @@ const ImageProcessor: React.FC = () => {
 
   const handleUnsplashSearch = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/unsplash/search?query=${encodeURIComponent(searchQuery)}`);
+      const response = await fetch(`${baseURL}/api/unsplash/search?query=${encodeURIComponent(searchQuery)}`);
       if (!response.ok) throw new Error('Failed to fetch images');
       const data = await response.json();
       setUnsplashImages(data.results);

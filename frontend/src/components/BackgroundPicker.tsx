@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './BackgroundPicker.css';
 
+const baseURL = process.env.REACT_APP_API_URL;
+
 interface BackgroundPickerProps {
   onSelectBackground: (imageUrl: string) => void;
   onClose: () => void;
@@ -45,7 +47,7 @@ const BackgroundPicker: React.FC<BackgroundPickerProps> = ({
     setError(null);
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/unsplash/search?query=${encodeURIComponent(searchQuery)}&page=${currentPage}&perPage=20`);
+      const response = await fetch(`${baseURL}/api/unsplash/search?query=${encodeURIComponent(searchQuery)}&page=${currentPage}&perPage=20`);
       
       console.log('Fetch Response:', {
         status: response.status,

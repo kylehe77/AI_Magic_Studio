@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import axios from 'axios';
 import { useLocation } from 'react-router-dom';
 
+const baseURL = process.env.REACT_APP_API_URL;
+
 interface CustomError {
   message: string;
 }
@@ -20,7 +22,7 @@ const VerifyEmailComponent: React.FC = () => {
             if (!token) return; // Early return if no token
 
             try {
-                const response = await axios.get<VerifyEmailResponse>(`${process.env.REACT_APP_API_URL}/api/auth/verify-email?token=${token}`);
+                const response = await axios.get<VerifyEmailResponse>(`${baseURL}/api/auth/verify-email?token=${token}`);
                 alert(response.data.message); // Show success message
                 // Optionally redirect to login or home page
             } catch (error: unknown) {
