@@ -1,5 +1,5 @@
 const nodemailer = require('nodemailer');
-
+const BASE_URL = process.env.REACT_APP_URL;
 // emailService.js
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
 });
 
 const sendVerificationEmail = async (email, token) => {
-  const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
+  const verificationUrl = `${BASE_URL}/verify-email?token=${token}`;
 
   await transporter.sendMail({
     from: process.env.EMAIL_FROM,

@@ -191,7 +191,7 @@ app.use((err, req, res, next) => {
 });
 
 // 测试邮件路由
-app.post('/api/register', async (req, res) => {
+app.post('/api/test', async (req, res) => {
   try {
     console.log('Receive Email:', req.body);
     await sendVerificationEmail(req.body.email, 'test-token-' + Date.now());
