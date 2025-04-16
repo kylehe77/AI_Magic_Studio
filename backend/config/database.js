@@ -1,48 +1,19 @@
-require('dotenv').config();
 const { Sequelize } = require('sequelize');
 
-const config = {
-  development: {
-    username: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'ai_magic_studio_dev',
-    host: process.env.DB_HOST || '127.0.0.1',
-    dialect: 'mysql',
-    port: process.env.DB_PORT || 3306
-  },
-  test: {
-    username: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    host: process.env.DB_HOST,
-    dialect: 'mysql',
-    port: process.env.DB_PORT || 3306
-  },
-  production: {
-    username: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    host: process.env.DB_HOST,
-    dialect: 'mysql',
-    port: process.env.DB_PORT || 3306
-  }
-};
-
-const environment = process.env.NODE_ENV || 'development';
-const dbConfig = config[environment];
-
-const sequelize = new Sequelize(dbConfig.database, dbConfig.username, dbConfig.password, {
-  host: dbConfig.host,
-  dialect: dbConfig.dialect,
-  port: dbConfig.port
+// 使用 SQLite，不需要用户名、密码、host
+const sequelize = new Sequelize({
+  dialect: 'sqlite',
+  storage: '/data/database.sqlite', // 你可以改成其他路径，比如 './data/mydb.sqlite'
+  logging: true // 如果你想关闭SQL日志输出，可以设置为false
 });
 
+// 测试连接
 sequelize.authenticate()
   .then(() => {
-    console.log('✅ DB connected.');
+    console.log('✅ SQLite DB connected.');
   })
   .catch(err => {
-    console.error('❌ DB connection failed:', err);
+    console.error('❌ SQLite DB connection failed:', err);
   });
-  
+
 module.exports = sequelize;
