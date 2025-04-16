@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import axios from 'axios';
 import './Login.css';
+
+interface LoginResponse {
+    token: string;
+}
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -8,10 +13,19 @@ const Login: React.FC = () => {
     const [rememberMe, setRememberMe] = useState(false);
     const navigate = useNavigate();
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // TODO: Implement login logic
-        console.log('Login attempt with:', { email, password, rememberMe });
+        try {
+            const response = await axios.post<LoginResponse>('http://localhost:3001/api/auth/login', {
+                email,
+                password,
+            });
+            localStorage.setItem('authToken', response.data.token);
+            navigate('/dashboard');
+        } catch (error) {
+            console.error('Login error:', error);
+            alert('Login failed. Please check your credentials or register first.');
+        }
     };
 
     return (
@@ -43,23 +57,23 @@ const Login: React.FC = () => {
                         />
                     </div>
 
-                    <div className="form-options">
-                        <label className="remember-me">
+                    <div className="terms-agreement">
+                        <label className="checkbox-label">
                             <input
                                 type="checkbox"
                                 checked={rememberMe}
                                 onChange={(e) => setRememberMe(e.target.checked)}
                             />
-                            Remember me
+                            <span>Remember me</span>
                         </label>
                         <Link to="/forgot-password" className="forgot-password">
-                            Forgot your password?
+                            Forgot password?
                         </Link>
                     </div>
 
                     <div className="button-container">
                         <button type="submit" className="login-button1">
-                            Log in
+                            Log In
                         </button>
                     </div>
                 </form>

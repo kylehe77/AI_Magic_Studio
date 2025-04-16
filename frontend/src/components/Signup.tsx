@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import axios from 'axios';
 import './Signup.css';
 
 const Signup: React.FC = () => {
@@ -9,10 +10,23 @@ const Signup: React.FC = () => {
     const [agreeToTerms, setAgreeToTerms] = useState(false);
     const navigate = useNavigate();
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // TODO: Implement signup logic
-        console.log('Signup attempt with:', { email, password, confirmPassword, agreeToTerms });
+        if (password !== confirmPassword) {
+            alert('Passwords do not match.');
+            return;
+        }
+        try {
+            const response = await axios.post('http://localhost:3001/api/auth/register', {
+                email,
+                password,
+            });
+            alert('Verification email has been sent. Please check your inbox.');
+            navigate('/login'); // Redirect to login page
+        } catch (error) {
+            console.error('Signup error:', error);
+            alert('An error occurred during signup. Please try again.');
+        }
     };
 
     return (

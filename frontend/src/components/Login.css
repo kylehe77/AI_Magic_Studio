@@ -48,6 +48,12 @@
     gap: 15px;
 }
 
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
 .form-group input {
     width: 100%;
     padding: 12px;
@@ -61,27 +67,36 @@
     border-color: #1a73e8;
 }
 
-.form-options {
+.terms-agreement {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 14px;
+    margin-top: 5px;
 }
 
-.remember-me {
+.checkbox-label {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 8px;
+    font-size: 14px;
     color: #666;
 }
 
-.remember-me input[type="checkbox"] {
+.checkbox-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
     margin: 0;
+    cursor: pointer;
+}
+
+.checkbox-label span {
+    line-height: 1.4;
 }
 
 .forgot-password {
     color: #1a73e8;
     text-decoration: none;
+    font-size: 14px;
 }
 
 .forgot-password:hover {
@@ -107,6 +122,6 @@
     width: 300px;
 }
 
-.login-button:hover {
+.login-button1:hover {
     background-color: #1557b0;
 }
