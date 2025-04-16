@@ -1,6 +1,7 @@
 # AI Magic Studio
 
 AI Magic Studio is a cutting-edge web application that leverages AI technologies to transform and process images and text with powerful, user-friendly tools.
+You are welcome to explore this website through:  https://ai-magic-studio.onrender.com/
 
 ## 🚀 Project Overview
 
@@ -122,4 +123,4 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## 📧 Contact
 Kyle He - kyleh77@gmail.com
-Project Link: [(https://ai-magic-studio.onrender.com/)](https://github.com/kylehe77/AI_Magic_Studio)
+Project Link: [https://github.com/kylehe77/AI_Magic_Studio](https://github.com/kylehe77/AI_Magic_Studio)
