@@ -22,7 +22,7 @@ const ImageProcessor: React.FC = () => {
   const [selectedBackgroundImage, setSelectedBackgroundImage] = useState<string | null>(null);
   const [processingStage, setProcessingStage] = useState<ProcessingStage>(ProcessingStage.Initial);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [_error, setError] = useState<string | null>(null);
   const [unsplashImages, setUnsplashImages] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('background');
   const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
