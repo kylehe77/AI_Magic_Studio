@@ -1,23 +1,14 @@
 {
   "development": {
-    "username": "root",
-    "password": "KyleHe0106",
-    "database": "ai_magic_studio",
-    "host": "localhost",
-    "dialect": "mysql"
+    "dialect": "sqlite",
+    "storage": "./database.sqlite"
   },
   "test": {
-    "username": "root",
-    "password": "KyleHe0106",
-    "database": "ai_magic_studio",
-    "host": "localhost",
-    "dialect": "mysql"
+    "dialect": "sqlite",
+    "storage": ":memory:"
   },
   "production": {
-    "username": "root",
-    "password": "KyleHe0106",
-    "database": "ai_magic_studio",
-    "host": "localhost",
-    "dialect": "mysql"
+    "dialect": "sqlite",
+    "storage": "./database.sqlite"
   }
 }

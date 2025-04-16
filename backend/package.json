@@ -29,6 +29,7 @@
     "path": "^0.12.7",
     "sequelize": "^6.37.5",
     "serverless-http": "^3.2.0",
+    "sqlite3": "^5.1.7",
     "unsplash-js": "^7.0.19",
     "zhipuai": "^2.0.0"
   },
