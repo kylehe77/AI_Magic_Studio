@@ -37,4 +37,12 @@ const sequelize = new Sequelize(dbConfig.database, dbConfig.username, dbConfig.p
   port: dbConfig.port
 });
 
+sequelize.authenticate()
+  .then(() => {
+    console.log('✅ DB connected.');
+  })
+  .catch(err => {
+    console.error('❌ DB connection failed:', err);
+  });
+  
 module.exports = sequelize;

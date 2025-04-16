@@ -668,11 +668,13 @@ app.post('/api/text/grammar-check', async (req, res) => {
 
 // 用户注册
 app.post('/api/auth/register', async (req, res) => {
+  console.log("📨 Register request received:", req.body);
   try {
     const { email, password } = req.body;
     
     // 检查邮箱是否已注册
     const existingUser = await User.findOne({ where: { email } });
+    console.log("📧 Checking existing user...");
     if (existingUser) {
       return res.status(400).json({ error: 'this email is already registered' });
     }
@@ -680,6 +682,7 @@ app.post('/api/auth/register', async (req, res) => {
     // 生成验证信息
     const verificationToken = crypto.randomBytes(20).toString('hex');
     const verificationExpires = new Date(Date.now() + 86400000); // 24小时有效
+    
 
     // 生成验证链接
     const verificationLink = `${BASE_URL}/verify-email?token=${verificationToken}`;
@@ -693,9 +696,11 @@ app.post('/api/auth/register', async (req, res) => {
       emailVerificationExpires: verificationExpires,
       isVerified: false
     });
+    console.log("🔐 Hashing password...");
 
     // 发送验证邮件
     await sendVerificationEmail(email, verificationLink);
+    console.log("📤 Sending verification email...");
 
     res.status(201).json({
       success: true,
