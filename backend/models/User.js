@@ -1,13 +1,38 @@
-const { Sequelize } = require('sequelize');
+'use strict';
+const { Model } = require('sequelize');
 
-const sequelize = new Sequelize({
-  dialect: 'sqlite',
-  storage: '/data/database.sqlite', // ✅ 如果你在 Render 上部署，推荐存这里
-  logging: false
-});
+module.exports = (sequelize, DataTypes) => {
+  class User extends Model {
+    static associate(models) {}
+  }
 
-sequelize.authenticate()
-  .then(() => console.log('✅ SQLite connected'))
-  .catch((err) => console.error('❌ DB connection failed:', err));
+  User.init({
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    isVerified: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
+    emailVerificationToken: {
+      type: DataTypes.STRING
+    }
+  }, {
+    sequelize,
+    modelName: 'User',
+    timestamps: true
+  });
 
-module.exports = sequelize;
+  return User;
+};
