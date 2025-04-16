@@ -22,7 +22,7 @@ const ImageProcessor: React.FC = () => {
   const [selectedBackgroundImage, setSelectedBackgroundImage] = useState<string | null>(null);
   const [processingStage, setProcessingStage] = useState<ProcessingStage>(ProcessingStage.Initial);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [_error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [unsplashImages, setUnsplashImages] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('background');
   const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
@@ -196,6 +196,7 @@ const ImageProcessor: React.FC = () => {
 
   return (
     <div className="image-processor-container">
+      {error && <div className="error-message">{error}</div>}
       <div className="image-upload-section">
         {processingStage === ProcessingStage.Initial ? (
           <div {...getRootProps()} className={`dropzone ${isDragActive ? 'active' : ''}`}>
