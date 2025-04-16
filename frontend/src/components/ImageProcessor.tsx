@@ -118,7 +118,7 @@ const ImageProcessor: React.FC = () => {
 
   const handleUnsplashSearch = async () => {
     try {
-      const response = await fetch(`http://localhost:3001/api/unsplash/search?query=${encodeURIComponent(searchQuery)}`);
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/unsplash/search?query=${encodeURIComponent(searchQuery)}`);
       if (!response.ok) throw new Error('Failed to fetch images');
       const data = await response.json();
       setUnsplashImages(data.results);
